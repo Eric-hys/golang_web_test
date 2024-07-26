@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: authdb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: goapp
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    depends_on:
+      - db
+    environment:
+      DB_USER: user
+      DB_PASSWORD: userpassword
+      DB_NAME: authdb
+      DB_HOST: db
+    links:
+      - db
+
+volumes:
+  db_data:
